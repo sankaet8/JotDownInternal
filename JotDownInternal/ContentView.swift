@@ -10,7 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) var modelContext
-    @Query var thoughts: [Thought]
+    @Query(sort: \Thought.dateCreated, order: .reverse) var thoughts: [Thought]
 
     @State private var showingEntryView = true
 
