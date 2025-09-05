@@ -13,17 +13,34 @@ struct ContentView: View {
     @Query(sort: \Thought.dateCreated, order: .reverse) var thoughts: [Thought]
 
     @State private var showingEntryView = true
+    @State private var searchText = ""
+
+    var filteredThoughts: [Thought] {
+        if searchText.isEmpty {
+            return thoughts
+        } else {
+            return thoughts.filter { $0.text.localizedCaseInsensitiveContains(searchText) }
+        }
+    }
 
     var body: some View {
         NavigationStack {
-            List(thoughts) { thought in
-                VStack(alignment: .leading) {
-                    Text(thought.dateCreated, style: .date)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            VStack {
+                // Search Bar
+                TextField("Search thoughts...", text: $searchText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding([.top, .horizontal])
 
-                    Text(thought.text)
+                List(filteredThoughts) { thought in
+                    VStack(alignment: .leading) {
+                        Text(thought.dateCreated, style: .date)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Text(thought.text)
+                    }
                 }
+                .listStyle(.plain)
             }
             .navigationTitle("Thoughts")
             .toolbar {
