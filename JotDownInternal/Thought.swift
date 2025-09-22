@@ -12,6 +12,7 @@ import SwiftData
 class Thought {
     var dateCreated = Date()
     var text: String
+    var category: Category?
 
     init(text: String) {
         self.text = text

@@ -11,9 +11,10 @@ struct ThoughtEntryView: View {
     @Environment(\.dismiss) var dismiss
 
     @State private var entryText = ""
+    @State private var isLoading = false
     @FocusState private var isFocused: Bool
 
-    var onCompletion: (String) -> Void = { _ in }
+    var onCompletion: ((String) async throws -> Void) = { _ in }
 
     var body: some View {
         TextField(
@@ -34,7 +35,17 @@ struct ThoughtEntryView: View {
 
             ToolbarItem(placement: .confirmationAction) {
                 Button(role: .confirm) {
-                    onCompletion(entryText)
+                    Task {
+                        isLoading = true
+                        try await onCompletion(entryText)
+                        isLoading = false
+                    }
+                } label: {
+                    if isLoading {
+                        ProgressView()
+                    } else {
+                        Image(systemName: "checkmark")
+                    }
                 }
             }
         }
