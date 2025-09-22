@@ -42,7 +42,10 @@ struct ProfileView: View {
 
                     if !categories.isEmpty {
                         ForEach(categories) { category in
-                            Text(category.title)
+                            HStack {
+                                Text(category.title)
+                                Text(category.id.uuidString)
+                            }
                                 .tag(category)
                         }
                         .onDelete { indexSet in

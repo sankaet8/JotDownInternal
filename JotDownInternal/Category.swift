@@ -10,6 +10,6 @@ import FoundationModels
 
 @Generable
 struct Category: Identifiable, Hashable, Codable {
-    let id = UUID()
+    var id = UUID()
     let title: String
 }

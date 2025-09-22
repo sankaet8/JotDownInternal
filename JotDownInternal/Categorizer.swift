@@ -15,7 +15,7 @@ class Categorizer {
         self.categories = categories
     }
 
-    func categorize(thought: Thought) async throws -> Category {
+    func categorize(thought: Thought) async throws -> Category? {
         let session = LanguageModelSession {
             """
             You are an expert assistant in an app which helps users take down
@@ -38,7 +38,9 @@ class Categorizer {
             categories
         }
 
-        return try await session
+        let generatedCategory = try await session
             .respond(to: prompt, generating: Category.self).content
+
+        return categories.first { $0.title == generatedCategory.title }
     }
 }
