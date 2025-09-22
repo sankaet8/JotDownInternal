@@ -13,6 +13,7 @@ struct ContentView: View {
     @Query(sort: \Thought.dateCreated, order: .reverse) var thoughts: [Thought]
 
     @State private var showingEntryView = true
+    @State private var showingProfileView = false
 
     var body: some View {
         NavigationStack {
@@ -32,12 +33,20 @@ struct ContentView: View {
                         showingEntryView = true
                     }
                 }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Settings", systemImage: "gear") {
+                        showingProfileView = true
+                    }
+                }
             }
             .sheet(isPresented: $showingEntryView) {
                 NavigationStack {
                     ThoughtEntryView(onCompletion: addThought)
                 }
                 .presentationDetents([.medium])
+            }
+            .sheet(isPresented: $showingProfileView) {
+                ProfileView()
             }
         }
     }
