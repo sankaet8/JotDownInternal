@@ -27,7 +27,6 @@ struct ContentView: View {
 
                         if let category = thought.category {
                             Text(category.title)
-                            Text(category.id.uuidString)
                         }
                     }
                     .font(.caption)
