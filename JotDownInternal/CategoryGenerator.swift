@@ -43,8 +43,12 @@ class CategoryGenerator {
             "User's Profile Description: " + profileText
         }
 
-        return try await session
+        var categories = try await session
             .respond(to: prompt, generating: [Category].self).content
+
+        categories.append(.init(title: "Other"))
+
+        return categories
     }
 }
 

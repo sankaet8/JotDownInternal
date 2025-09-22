@@ -14,14 +14,23 @@ struct ContentView: View {
 
     @State private var showingEntryView = true
     @State private var showingProfileView = false
+    @AppStorage("com.jotdown.categories") var categoriesValue = StorageValue<[Category]>([])
 
     var body: some View {
         NavigationStack {
             List(thoughts) { thought in
                 VStack(alignment: .leading) {
-                    Text(thought.dateCreated, style: .date)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    HStack {
+                        Text(thought.dateCreated, style: .date)
+
+                        Spacer()
+
+                        if let category = thought.category {
+                            Text(category.title)
+                        }
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
 
                     Text(thought.text)
                 }
@@ -52,14 +61,20 @@ struct ContentView: View {
     }
 
     @MainActor
-    func addThought(text: String) {
+    func addThought(text: String) async throws {
         defer {
             showingEntryView = false
         }
 
         guard !text.isEmpty else { return }
 
+        let categorizer = Categorizer(categories: categoriesValue.value ?? [])
+
         let thought = Thought(text: text)
+
+        let category = try? await categorizer.categorize(thought: thought)
+
+        thought.category = category
 
         modelContext.insert(thought)
         try? modelContext.save()
