@@ -34,6 +34,9 @@ struct ContentView: View {
 
                     Text(thought.text)
                 }
+            }.onAppear {
+                WatchSessionManager.shared.setup(context: modelContext)
+                
             }
             .navigationTitle("Thoughts")
             .toolbar {

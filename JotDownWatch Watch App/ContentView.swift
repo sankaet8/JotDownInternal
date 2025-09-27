@@ -6,12 +6,14 @@
 //
 
 import SwiftUI
+import WatchConnectivity
 
 
 struct ContentView: View {
     @State private var showingInput = false
     @State private var thoughtInput = ""
-
+    @ObservedObject  var watchSessionManager = WatchSessionManager.shared
+    
     var body: some View {
         TabView {
             VStack {
@@ -32,7 +34,14 @@ struct ContentView: View {
                         TextField("Enter your thought", text: $thoughtInput)
                             .padding()
                         Button("Save") {
-                            // TODO save to swift data
+                            let message = ["thought": thoughtInput]
+                            if WCSession.default.isReachable {
+                                WCSession.default.sendMessage(message, replyHandler: nil, errorHandler: { error in
+                                    print("Error sending message: \(error.localizedDescription)")
+                                })
+                                thoughtInput = ""
+                                showingInput = false
+                            }
                         }
                         .buttonStyle(.borderedProminent)
                         Spacer()
@@ -44,15 +53,29 @@ struct ContentView: View {
             .tag(0)
 
             List {
-                // TODO fetch from swift data
-                // ForEach(thoughts, id: \ .self) { thought in
-                //     Text(thought)
-                //         .font(.body)
-                // }
+                if watchSessionManager.thoughts.isEmpty {
+                    Text("No thoughts written yet!")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(watchSessionManager.thoughts, id: \.self) { thought in
+                        Text(thought)
+                            .font(.body)
+                    }
+                }
              }
             .tag(1)
+            // .onAppear {
+            //     watchSessionManager.requestThoughts()
+            // }
         }
         .tabViewStyle(.page)
+        .onAppear {
+            if WCSession.isSupported() {
+                WCSession.default.delegate = WatchSessionManager.shared
+                WCSession.default.activate()
+                watchSessionManager.requestThoughts()
+            }
+        }
     }
 }
 
