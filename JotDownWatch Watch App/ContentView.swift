@@ -36,7 +36,8 @@ struct ContentView: View {
                         Button("Save") {
                             let message = ["thought": thoughtInput]
                             if WCSession.default.isReachable {
-                                WCSession.default.sendMessage(message, replyHandler: nil, errorHandler: { error in
+                                WCSession.default.sendMessage(message, replyHandler: { _ in}, errorHandler: { error in
+                           
                                     print("Error sending message: \(error.localizedDescription)")
                                 })
                                 thoughtInput = ""

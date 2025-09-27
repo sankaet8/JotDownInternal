@@ -3,8 +3,6 @@ import SwiftData
 import SwiftUI
 
 class WatchSessionManager: NSObject, WCSessionDelegate {
-    
-
     static let shared = WatchSessionManager()
     var modelContext: ModelContext?
 
@@ -20,6 +18,7 @@ class WatchSessionManager: NSObject, WCSessionDelegate {
 
     func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
         if let text = message["thought"] as? String, !text.isEmpty {
+            print("Received thought: \(text)")
             Task { @MainActor in
                 let thought = Thought(text: text)
                 modelContext?.insert(thought)
