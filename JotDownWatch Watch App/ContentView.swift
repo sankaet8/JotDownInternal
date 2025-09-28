@@ -8,12 +8,11 @@
 import SwiftUI
 import WatchConnectivity
 
-
 struct ContentView: View {
     @State private var showingInput = false
     @State private var thoughtInput = ""
-    @ObservedObject  var watchSessionManager = WatchSessionManager.shared
-    
+    @ObservedObject var watchSessionManager = WatchSessionManager.shared
+
     var body: some View {
         TabView {
             VStack {
@@ -36,8 +35,9 @@ struct ContentView: View {
                         Button("Save") {
                             let message = ["thought": thoughtInput]
                             if WCSession.default.isReachable {
-                                WCSession.default.sendMessage(message, replyHandler: { _ in}, errorHandler: { error in
-                           
+                                WCSession.default.sendMessage(message, replyHandler: { _ in
+                                    watchSessionManager.requestThoughts()
+                                }, errorHandler: { error in
                                     print("Error sending message: \(error.localizedDescription)")
                                 })
                                 thoughtInput = ""
@@ -65,16 +65,15 @@ struct ContentView: View {
                 }
              }
             .tag(1)
-            // .onAppear {
-            //     watchSessionManager.requestThoughts()
-            // }
+            .onAppear {
+                watchSessionManager.requestThoughts()
+            }
         }
         .tabViewStyle(.page)
         .onAppear {
             if WCSession.isSupported() {
                 WCSession.default.delegate = WatchSessionManager.shared
                 WCSession.default.activate()
-                watchSessionManager.requestThoughts()
             }
         }
     }

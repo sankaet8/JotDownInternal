@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct JotDownWatch_Watch_AppApp: App {
+struct JotDownWatchApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()

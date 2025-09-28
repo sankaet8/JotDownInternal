@@ -1,5 +1,5 @@
 //
-//  CommunicationManager.swift
+//  WatchSessionManager.swift
 //  JotDownInternal
 //
 //  Created by Joseph Masson on 9/26/25.
@@ -40,15 +40,12 @@ class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate {
         }
     }
 
-    // WCSessionDelegate stubs
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
-        // You can add logging or error handling here
+        if activationState == .activated {
+            requestThoughts()
+        }
     }
 
-    func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
-        // Handle incoming messages if needed
-    }
-
-//    func sessionDidBecomeInactive(_ session: WCSession) {}
-//    func sessionDidDeactivate(_ session: WCSession) {}
+    // Required stub
+    func session(_ session:WCSession, didReceiveMessage message: [String: Any]) {}
 }
