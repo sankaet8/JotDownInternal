@@ -17,47 +17,60 @@ struct ContentView: View {
     @AppStorage("com.jotdown.categories") var categoriesValue = StorageValue<[Category]>([])
 
     var body: some View {
-        NavigationStack {
-            List(thoughts) { thought in
-                VStack(alignment: .leading) {
-                    HStack {
-                        Text(thought.dateCreated, style: .date)
-
-                        Spacer()
-
-                        if let category = thought.category {
-                            Text(category.title)
+        TabView {
+            NavigationStack {
+                List(thoughts) { thought in
+                    VStack(alignment: .leading) {
+                        HStack {
+                            Text(thought.dateCreated, style: .date)
+                            
+                            Spacer()
+                            
+                            if let category = thought.category {
+                                Text(category.title)
+                            }
+                        }
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        
+                        Text(thought.text)
+                    }
+                }.onAppear {
+                    WatchSessionManager.shared.setup(context: modelContext)
+                }
+                .navigationTitle("Thoughts")
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("New Thought", systemImage: "square.and.pencil") {
+                            showingEntryView = true
                         }
                     }
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                    Text(thought.text)
-                }
-            }.onAppear {
-                WatchSessionManager.shared.setup(context: modelContext)
-            }
-            .navigationTitle("Thoughts")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("New Thought", systemImage: "square.and.pencil") {
-                        showingEntryView = true
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Settings", systemImage: "gear") {
+                            showingProfileView = true
+                        }
                     }
                 }
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Settings", systemImage: "gear") {
-                        showingProfileView = true
+                .sheet(isPresented: $showingEntryView) {
+                    NavigationStack {
+                        ThoughtEntryView(onCompletion: addThought)
                     }
+                    .presentationDetents([.medium])
+                }
+                .sheet(isPresented: $showingProfileView) {
+                    ProfileView()
                 }
             }
-            .sheet(isPresented: $showingEntryView) {
-                NavigationStack {
-                    ThoughtEntryView(onCompletion: addThought)
-                }
-                .presentationDetents([.medium])
+            .tabItem {
+                Label("Thoughts", systemImage: "list.bullet")
             }
-            .sheet(isPresented: $showingProfileView) {
-                ProfileView()
+            
+            NavigationStack {
+                SearchView()
+                    .navigationTitle("Search")
+            }
+            .tabItem {
+                Label("Search", systemImage: "magnifyingglass")
             }
         }
     }
