@@ -20,63 +20,51 @@ struct SearchView: View {
     @State private var hasSearched: Bool = false
 
     var body: some View {
-        VStack(spacing: 8) {
-
-            Picker("Mode", selection: $mode) {
-                Text("Regex/Contains").tag(SearchMode.regexContains)
-                Text("Foundation Models").tag(SearchMode.foundationModels)
-                Text("RAG").tag(SearchMode.rag)
-            }
-            .pickerStyle(.menu)
-            .padding(.vertical)
-
-            Group {
-                if isSearching {
-                    ProgressView("Searching…")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                } else if results.isEmpty {
-                    if hasSearched {
-                        ContentUnavailableView(
-                            "No results",
-                            systemImage: "magnifyingglass",
-                            description: Text("Try a different query or mode.")
-                        )
-                    } else {
-                        ContentUnavailableView(
-                            "Search",
-                            systemImage: "magnifyingglass",
-                            description: Text("Enter a query to search your thoughts.")
-                        )
+        List(results) { thought in
+            VStack(alignment: .leading) {
+                HStack {
+                    Text(thought.dateCreated, style: .date)
+                    Spacer()
+                    if let category = thought.category {
+                        Text(category.title)
                     }
-                } else {
-                    List(results) { thought in
-                        VStack(alignment: .leading) {
-                            HStack {
-                                Text(thought.dateCreated, style: .date)
-                                Spacer()
-                                if let category = thought.category {
-                                    Text(category.title)
-                                }
-                            }
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-
-                            Text(thought.text)
-                        }
-                    }
-                    .listStyle(.plain)
                 }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+                Text(thought.text)
             }
         }
-        .searchable(text: $searchText, placement: .automatic, prompt: "Search thoughts")
-        .onSubmit(of: .search) {
-            performSearch()
+        .listStyle(.plain)
+        .searchable(
+            text: $searchText,
+            placement: .automatic,
+            prompt: "Search thoughts"
+        )
+        .overlay {
+            if searchText.isEmpty {
+                ContentUnavailableView(
+                    "Search",
+                    systemImage: "magnifyingglass",
+                    description: Text("Enter a query to search your thoughts.")
+                )
+            } else if results.isEmpty {
+                ContentUnavailableView.search(text: searchText)
+            }
         }
-        .onChange(of: searchText) { _, text in
-            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            if trimmed.isEmpty {
-                results = []
-                hasSearched = false
+        .onChange(of: searchText) { _, _ in
+            if !searchText.isEmpty {
+                performSearch()
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Picker("Mode", selection: $mode) {
+                    Text("Regex/Contains").tag(SearchMode.regexContains)
+                    Text("Foundation Models").tag(SearchMode.foundationModels)
+                    Text("RAG").tag(SearchMode.rag)
+                }
+                .pickerStyle(.menu)
             }
         }
         .navigationTitle("Search")
