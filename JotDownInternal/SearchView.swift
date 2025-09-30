@@ -72,7 +72,7 @@ struct SearchView: View {
         .onSubmit(of: .search) {
             performSearch()
         }
-        onChange(of: searchText) { _, text in
+        .onChange(of: searchText) { _, text in
             let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
             if trimmed.isEmpty {
                 results = []
