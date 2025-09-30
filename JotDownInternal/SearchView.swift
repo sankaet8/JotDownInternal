@@ -17,33 +17,10 @@ struct SearchView: View {
     @State private var mode: SearchMode = .regexContains
     @State private var results: [Thought] = []
     @State private var isSearching: Bool = false
-    @FocusState private var isSearchFieldFocused: Bool
+    @State private var hasSearched: Bool = false
 
     var body: some View {
         VStack(spacing: 8) {
-            HStack {
-                TextField("Search field", text: $searchText)
-                    .textFieldStyle(.roundedBorder)
-                    .focused($isSearchFieldFocused)
-                    .submitLabel(.search)
-                    .onSubmit {
-                        performSearch()
-                    }
-
-                if !searchText.isEmpty {
-                    Button {
-                        searchText = ""
-                        results = []
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.tertiary)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Clear search text")
-                }
-            }
-            .padding(.horizontal)
-            .padding(.top, 12)
 
             Picker("Mode", selection: $mode) {
                 Text("Regex/Contains").tag(SearchMode.regexContains)
@@ -58,11 +35,19 @@ struct SearchView: View {
                     ProgressView("Searching…")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 } else if results.isEmpty {
-                    ContentUnavailableView(
-                        searchText.isEmpty ? "Search" : "No results",
-                        systemImage: "magnifyingglass",
-                        description: Text(searchText.isEmpty ? "Enter a query to search your thoughts." : "Try a different query or mode.")
-                    )
+                    if hasSearched {
+                        ContentUnavailableView(
+                            "No results",
+                            systemImage: "magnifyingglass",
+                            description: Text("Try a different query or mode.")
+                        )
+                    } else {
+                        ContentUnavailableView(
+                            "Search",
+                            systemImage: "magnifyingglass",
+                            description: Text("Enter a query to search your thoughts.")
+                        )
+                    }
                 } else {
                     List(results) { thought in
                         VStack(alignment: .leading) {
@@ -83,6 +68,17 @@ struct SearchView: View {
                 }
             }
         }
+        .searchable(text: $searchText, placement: .automatic, prompt: "Search thoughts")
+        .onSubmit(of: .search) {
+            performSearch()
+        }
+        onChange(of: searchText) { _, text in
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.isEmpty {
+                results = []
+                hasSearched = false
+            }
+        }
         .navigationTitle("Search")
     }
 
@@ -90,8 +86,10 @@ struct SearchView: View {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else {
             results = []
+            hasSearched = false
             return
         }
+        hasSearched = true
 
         switch mode {
         case .regexContains:
