@@ -8,55 +8,69 @@
 import SwiftUI
 
 struct ThoughtEntryView: View {
-    @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) var modelContext
+    @Environment(ThoughtListManager.self) var thoughtListManager
 
     @State private var entryText = ""
     @State private var isLoading = false
     @FocusState private var isFocused: Bool
 
-    var onCompletion: ((String) async throws -> Void) = { _ in }
+    @AppStorage("com.jotdown.categories") var categoriesValue = StorageValue<[Category]>([])
 
     var body: some View {
-        TextField(
-            "What's on your mind?",
-            text: $entryText,
-            axis: .vertical
+        VStack {
+            HStack {
+                Spacer()
+                if !entryText.isEmpty {
+                    Button(role: .confirm) {
+                        Task {
+                            isLoading = true
+                            let newThought = try await thoughtListManager
+                                .addThought(
+                                    text: entryText,
+                                    categories: categoriesValue.value ?? [],
+                                    context: modelContext
+                                )
+
+                            withAnimation {
+                                if let newThought {
+                                    thoughtListManager.selectedThought =
+                                        .thought(newThought)
+                                }
+                            }
+
+                            entryText.removeAll()
+
+                            isLoading = false
+                        }
+                    } label: {
+                        if isLoading {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                    .disabled(isLoading || entryText.isEmpty)
+                }
+            }
+
+            Spacer()
+
+            TextField(
+                "Start writing...",
+                text: $entryText,
+                axis: .vertical
+            )
+            .focused($isFocused)
+            .font(.largeTitle)
+            .fontDesign(.serif)
+
+            Spacer()
+        }
+        .padding()
+        .glassEffect(
+            in: .rect(cornerRadius: ThoughtListManager.thoughtCardRadius)
         )
-        .focused($isFocused)
-        .font(.largeTitle)
-        .fontDesign(.serif)
-        .padding(16)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button(role: .cancel) {
-                    dismiss()
-                }
-            }
-
-            ToolbarItem(placement: .confirmationAction) {
-                Button(role: .confirm) {
-                    Task {
-                        isLoading = true
-                        try await onCompletion(entryText)
-                        isLoading = false
-                    }
-                } label: {
-                    if isLoading {
-                        ProgressView()
-                    } else {
-                        Image(systemName: "checkmark")
-                    }
-                }
-            }
-        }
-        .task {
-            isFocused = true
-        }
-    }
-}
-
-#Preview {
-    NavigationStack {
-        ThoughtEntryView()
+        .padding()
     }
 }
