@@ -36,6 +36,7 @@ struct SearchView: View {
             }
         }
         .listStyle(.plain)
+        .navigationTitle("Search")
         .searchable(
             text: $searchText,
             placement: .automatic,
